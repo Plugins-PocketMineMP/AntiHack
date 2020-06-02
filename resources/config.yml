@@ -1,4 +1,3 @@
-hack-client-detected: "Player {player}'s client ID shows that (s)he is connecting as a hack client, It would be nice to observe the player."
 cps-message: "Your cps is too high!"
 distance-message: "Your click distance is too far!"
 

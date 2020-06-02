@@ -5,6 +5,10 @@ A PocketMine-MP Plugin | AntiHack
 
 This plugin detects hack use within the server and cancels the operation.
 
+[![](https://poggit.pmmp.io/shield.state/AntiHack)](https://poggit.pmmp.io/p/AntiHack)
+
+[![](https://poggit.pmmp.io/shield.dl/AntiHack)](https://poggit.pmmp.io/p/AntiHack)
+
 ## Feature
 
 - [x] Distance Hack

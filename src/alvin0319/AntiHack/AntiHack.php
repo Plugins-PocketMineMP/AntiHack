@@ -23,19 +23,13 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
-use pocketmine\event\player\PlayerPreLoginEvent;
 use pocketmine\event\player\PlayerQuitEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
-use pocketmine\network\mcpe\protocol\LoginPacket;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
 class AntiHack extends PluginBase implements Listener{
-
-	public const HACK_CLIENT_ID = 9223372036854775807; // ToolBox
-
-	protected $bannedData = [];
 
 	protected $clickData = [];
 
@@ -59,16 +53,13 @@ class AntiHack extends PluginBase implements Listener{
 		$packet = $event->getPacket();
 		$player = $event->getPlayer();
 
-		if($packet instanceof LoginPacket){ // this is hack client
-			if($packet->clientData["ClientRandomId"] === self::HACK_CLIENT_ID){
-				$this->bannedData[strtolower($packet->username)] = true;
-			}
-		}elseif($packet instanceof InventoryTransactionPacket){ // this is cps..
+		if($packet instanceof InventoryTransactionPacket){ // this is cps..
 			if($packet->transactionType === InventoryTransactionPacket::TYPE_USE_ITEM_ON_ENTITY){
 				if($packet->trData->actionType === InventoryTransactionPacket::USE_ITEM_ON_ENTITY_ACTION_ATTACK){
 					if(isset($this->clickData[$player->getName()])){
 						$lastTime = $this->clickData[$player->getName()];
 						$expectTime = abs(0.2 + (((1 / floatval($this->getConfig()->getNested("click-per-seconds", 0.6)) * 20) + 0.5) / $lastTime) ^ 2 * 0.8); // mcbe's attack cooldown is 0.6
+						$expectTime -= 0.5; // too terrible
 						$actualTime = microtime(true) - $lastTime;
 
 						if($player->hasEffect(Effect::HASTE)){
@@ -89,26 +80,9 @@ class AntiHack extends PluginBase implements Listener{
 		}
 	}
 
-	public function onPlayerPreLogin(PlayerPreLoginEvent $event) : void{
-		$player = $event->getPlayer();
-		if(isset($this->bannedData[$player->getLowerCaseName()])){
-			//$event->setKickMessage($this->getConfig()->getNested("hack-client-detected", "Your client ID shows that you are connecting as a hack client. Please connect as an official MCBE client."));
-			//$event->setCancelled();
-			foreach($this->getServer()->getOnlinePlayers() as $target){
-				if($target->isOp()){
-					$replaced = str_replace("{player}", $player->getName(), $this->getConfig()->getNested("hack-client-detected", "Player {player}'s client ID shows that (s)he is connecting as a hack client, It would be nice to observe the player."));
-					$player->sendMessage($replaced);
-				}
-			}
-		}
-	}
-	
 	public function onPlayerQuit(PlayerQuitEvent $event) : void{
 		$player = $event->getPlayer();
-	
-		if(isset($this->bannedData[$player->getLowerCaseName()])){
-			unset($this->bannedData[$player->getLowerCaseName()]);
-		}
+
 		if(isset($this->clickData[$player->getName()])){
 			unset($this->clickData[$player->getName()]);
 		}
